@@ -1,6 +1,35 @@
 """
-Story generation prompts for different age groups.
+Story generation prompts for different age groups and languages.
 """
+
+# Language names for prompts (in the target language)
+LANGUAGE_NAMES = {
+    "en": "English",
+    "es": "Spanish (Español)",
+    "fr": "French (Français)",
+    "de": "German (Deutsch)",
+    "it": "Italian (Italiano)",
+    "pt": "Portuguese (Português)",
+    "nl": "Dutch (Nederlands)",
+    "pl": "Polish (Polski)",
+    "ru": "Russian (Русский)",
+    "ja": "Japanese (日本語)",
+    "zh": "Chinese (中文)",
+    "ko": "Korean (한국어)",
+    "ar": "Arabic (العربية)",
+    "hi": "Hindi (हिन्दी)",
+    "tr": "Turkish (Türkçe)",
+    "sv": "Swedish (Svenska)",
+    "da": "Danish (Dansk)",
+    "no": "Norwegian (Norsk)",
+    "fi": "Finnish (Suomi)",
+    "cs": "Czech (Čeština)",
+    "el": "Greek (Ελληνικά)",
+    "he": "Hebrew (עברית)",
+    "hu": "Hungarian (Magyar)",
+    "ro": "Romanian (Română)",
+    "uk": "Ukrainian (Українська)",
+}
 
 AGE_GROUPS = {
     "toddler": {
@@ -42,10 +71,30 @@ THEMES = [
 ]
 
 
-def get_story_prompt(child_name: str, age_group: str, theme: str) -> str:
-    """Generate the prompt for story creation."""
+def get_story_prompt(child_name: str, age_group: str, theme: str, language: str = "en") -> str:
+    """Generate the prompt for story creation.
 
+    Args:
+        child_name: The child's name to feature in the story.
+        age_group: One of 'toddler', 'preschool', 'early_reader', 'older_kids'.
+        theme: The story theme.
+        language: Language code for the story (e.g., 'en', 'es', 'fr').
+
+    Returns:
+        The formatted prompt for story generation.
+    """
     age_config = AGE_GROUPS.get(age_group, AGE_GROUPS["preschool"])
+    language_name = LANGUAGE_NAMES.get(language, "English")
+
+    # Language instruction
+    language_instruction = ""
+    if language != "en":
+        language_instruction = f"""
+LANGUAGE REQUIREMENT:
+- Write the ENTIRE story in {language_name}
+- Use natural, fluent {language_name} appropriate for children
+- Keep cultural references appropriate for {language_name}-speaking audiences
+"""
 
     prompt = f"""You are a warm, caring children's storyteller. Write a bedtime story for a {age_config['label'].lower()} child.
 
@@ -53,7 +102,7 @@ STORY REQUIREMENTS:
 - Main character name: {child_name}
 - Theme: {theme}
 - Target length: approximately {age_config['word_count']} words ({age_config['duration']} when read aloud)
-- Writing style: {age_config['complexity']}
+- Writing style: {age_config['complexity']}{language_instruction}
 
 STORY STRUCTURE:
 1. GENTLE OPENING: Introduce {child_name} in a cozy, familiar setting

@@ -30,6 +30,7 @@ class StoryGenerator:
         child_name: str,
         age_group: str,
         theme: str,
+        language: str = "en",
         max_retries: int = 2
     ) -> str:
         """Generate a personalized story.
@@ -38,6 +39,7 @@ class StoryGenerator:
             child_name: The child's name to feature in the story.
             age_group: One of 'toddler', 'preschool', 'early_reader', 'older_kids'.
             theme: The story theme (e.g., 'Pirates & Treasure').
+            language: Language code for the story (e.g., 'en', 'es', 'fr').
             max_retries: Number of retries on failure.
 
         Returns:
@@ -53,7 +55,7 @@ class StoryGenerator:
 
         # Get prompts
         system_prompt = get_system_prompt()
-        user_prompt = get_story_prompt(child_name, age_group, theme)
+        user_prompt = get_story_prompt(child_name, age_group, theme, language)
 
         last_error = None
         for attempt in range(max_retries + 1):

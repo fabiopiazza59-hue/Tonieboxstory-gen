@@ -22,6 +22,104 @@ DEMO_MODE = not os.environ.get("GROQ_API_KEY")
 story_generator = None
 tts_engine = None
 
+# Pre-compute dropdown choices as simple lists (Gradio 4.44 compatibility)
+LANGUAGE_CHOICES = [
+    ("English", "en"),
+    ("Español (Spanish)", "es"),
+    ("Français (French)", "fr"),
+    ("Deutsch (German)", "de"),
+    ("Italiano (Italian)", "it"),
+    ("Português (Portuguese)", "pt"),
+    ("Nederlands (Dutch)", "nl"),
+    ("Polski (Polish)", "pl"),
+    ("Русский (Russian)", "ru"),
+    ("日本語 (Japanese)", "ja"),
+    ("中文 (Chinese)", "zh"),
+    ("한국어 (Korean)", "ko"),
+    ("العربية (Arabic)", "ar"),
+    ("हिन्दी (Hindi)", "hi"),
+    ("Türkçe (Turkish)", "tr"),
+    ("Svenska (Swedish)", "sv"),
+    ("Dansk (Danish)", "da"),
+    ("Norsk (Norwegian)", "no"),
+    ("Suomi (Finnish)", "fi"),
+    ("Čeština (Czech)", "cs"),
+    ("Ελληνικά (Greek)", "el"),
+    ("עברית (Hebrew)", "he"),
+    ("Magyar (Hungarian)", "hu"),
+    ("Română (Romanian)", "ro"),
+    ("Українська (Ukrainian)", "uk"),
+]
+
+VOICE_CHOICES = [
+    ("Warm Female (US)", "en_warm_female_us"),
+    ("Friendly Male (US)", "en_friendly_male_us"),
+    ("Friendly Male (UK)", "en_friendly_male_uk"),
+    ("Storyteller (AU)", "en_storyteller_au"),
+    ("Elvira (Spain)", "es_warm_female"),
+    ("Alvaro (Spain)", "es_friendly_male"),
+    ("Dalia (Mexico)", "es_mx_female"),
+    ("Jorge (Mexico)", "es_mx_male"),
+    ("Denise (France)", "fr_warm_female"),
+    ("Henri (France)", "fr_friendly_male"),
+    ("Sylvie (Canada)", "fr_ca_female"),
+    ("Katja (Germany)", "de_warm_female"),
+    ("Conrad (Germany)", "de_friendly_male"),
+    ("Ingrid (Austria)", "de_at_female"),
+    ("Elsa (Italy)", "it_warm_female"),
+    ("Diego (Italy)", "it_friendly_male"),
+    ("Francisca (Brazil)", "pt_br_female"),
+    ("Antonio (Brazil)", "pt_br_male"),
+    ("Raquel (Portugal)", "pt_pt_female"),
+    ("Colette (Netherlands)", "nl_warm_female"),
+    ("Maarten (Netherlands)", "nl_friendly_male"),
+    ("Agnieszka (Poland)", "pl_warm_female"),
+    ("Marek (Poland)", "pl_friendly_male"),
+    ("Svetlana (Russia)", "ru_warm_female"),
+    ("Dmitry (Russia)", "ru_friendly_male"),
+    ("Nanami (Japan)", "ja_warm_female"),
+    ("Keita (Japan)", "ja_friendly_male"),
+    ("Xiaoxiao (China)", "zh_warm_female"),
+    ("Yunxi (China)", "zh_friendly_male"),
+    ("Hsiao (Taiwan)", "zh_tw_female"),
+    ("SunHi (Korea)", "ko_warm_female"),
+    ("InJoon (Korea)", "ko_friendly_male"),
+    ("Zariyah (Saudi)", "ar_warm_female"),
+    ("Hamed (Saudi)", "ar_friendly_male"),
+    ("Salma (Egypt)", "ar_eg_female"),
+    ("Swara (India)", "hi_warm_female"),
+    ("Madhur (India)", "hi_friendly_male"),
+    ("Emel (Turkey)", "tr_warm_female"),
+    ("Ahmet (Turkey)", "tr_friendly_male"),
+    ("Sofie (Sweden)", "sv_warm_female"),
+    ("Mattias (Sweden)", "sv_friendly_male"),
+    ("Christel (Denmark)", "da_warm_female"),
+    ("Jeppe (Denmark)", "da_friendly_male"),
+    ("Pernille (Norway)", "no_warm_female"),
+    ("Finn (Norway)", "no_friendly_male"),
+    ("Noora (Finland)", "fi_warm_female"),
+    ("Harri (Finland)", "fi_friendly_male"),
+    ("Vlasta (Czech)", "cs_warm_female"),
+    ("Antonin (Czech)", "cs_friendly_male"),
+    ("Athina (Greece)", "el_warm_female"),
+    ("Nestoras (Greece)", "el_friendly_male"),
+    ("Hila (Israel)", "he_warm_female"),
+    ("Avri (Israel)", "he_friendly_male"),
+    ("Noemi (Hungary)", "hu_warm_female"),
+    ("Tamas (Hungary)", "hu_friendly_male"),
+    ("Alina (Romania)", "ro_warm_female"),
+    ("Emil (Romania)", "ro_friendly_male"),
+    ("Polina (Ukraine)", "uk_warm_female"),
+    ("Ostap (Ukraine)", "uk_friendly_male"),
+]
+
+AGE_CHOICES = [
+    ("Toddler (2-3)", "toddler"),
+    ("Preschool (3-5)", "preschool"),
+    ("Early Reader (5-7)", "early_reader"),
+    ("Older Kids (7+)", "older_kids"),
+]
+
 
 def get_story_generator():
     """Lazy initialization of story generator."""
@@ -173,7 +271,7 @@ with gr.Blocks(
             )
 
             age_group = gr.Radio(
-                choices=[(v["label"], k) for k, v in AGE_GROUPS.items()],
+                choices=AGE_CHOICES,
                 label="Age Group",
                 value="preschool",
             )
@@ -192,13 +290,13 @@ with gr.Blocks(
             )
 
             language = gr.Dropdown(
-                choices=[(v["label"], k) for k, v in LANGUAGES.items()],
+                choices=LANGUAGE_CHOICES,
                 label="Story Language",
                 value="en",
             )
 
             voice = gr.Dropdown(
-                choices=[(v["label"], k) for k, v in VOICES.items()],
+                choices=VOICE_CHOICES,
                 label="Voice",
                 value="en_warm_female_us",
             )

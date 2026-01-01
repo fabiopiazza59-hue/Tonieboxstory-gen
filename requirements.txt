@@ -1,5 +1,6 @@
-# Core dependencies
-gradio>=4.0
+# Core dependencies - pinned for compatibility
+gradio==4.44.0
+huggingface_hub>=0.24.0,<0.26.0
 groq>=0.4.0
 
 # Text-to-Speech (Microsoft Edge TTS - free, no API key)
@@ -7,7 +8,3 @@ edge-tts>=6.1.0
 
 # Audio processing
 pydub>=0.25.1
-
-# Note: pydub requires ffmpeg for MP3 conversion
-# On HuggingFace Spaces, ffmpeg is pre-installed
-# For local development: apt-get install ffmpeg (Linux) or brew install ffmpeg (Mac)

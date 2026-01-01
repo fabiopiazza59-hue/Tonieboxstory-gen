@@ -1,6 +1,5 @@
-# Core dependencies - pinned for compatibility
-gradio==4.44.0
-huggingface_hub>=0.24.0,<0.26.0
+# Core dependencies - pinned for HuggingFace Spaces compatibility
+gradio==4.31.0
 groq>=0.4.0
 
 # Text-to-Speech (Microsoft Edge TTS - free, no API key)

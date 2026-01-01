@@ -131,12 +131,14 @@ def update_custom_theme_visibility(theme: str):
     return gr.update(visible=(theme == "Custom"))
 
 
-def update_voices_for_language(language: str):
-    """Update voice dropdown options based on selected language."""
-    voices = get_voices_for_language(language)
-    choices = [(v["label"], k) for k, v in voices.items()]
-    default_voice = get_default_voice_for_language(language)
-    return gr.update(choices=choices, value=default_voice)
+def get_all_voice_choices():
+    """Get all voices grouped by language for the dropdown."""
+    choices = []
+    for lang_code, lang_info in LANGUAGES.items():
+        voices = get_voices_for_language(lang_code)
+        for voice_key, voice_info in voices.items():
+            choices.append((voice_info["label"], voice_key))
+    return choices
 
 
 # Build the Gradio interface
@@ -189,15 +191,14 @@ with gr.Blocks(
 
             language = gr.Dropdown(
                 choices=[(v["label"], k) for k, v in LANGUAGES.items()],
-                label="Language",
+                label="Story Language",
                 value="en",
             )
 
-            # Get initial English voices
-            initial_voices = get_voices_for_language("en")
+            # All voices - user selects voice matching their language choice
             voice = gr.Dropdown(
-                choices=[(v["label"], k) for k, v in initial_voices.items()],
-                label="Voice",
+                choices=get_all_voice_choices(),
+                label="Voice (select voice matching your language)",
                 value="en_warm_female_us",
             )
 
@@ -247,12 +248,6 @@ with gr.Blocks(
         outputs=[custom_theme],
     )
 
-    language.change(
-        fn=update_voices_for_language,
-        inputs=[language],
-        outputs=[voice],
-    )
-
     generate_btn.click(
         fn=generate_story_and_audio,
         inputs=[child_name, age_group, language, theme, custom_theme, voice],
@@ -261,4 +256,4 @@ with gr.Blocks(
 
 
 if __name__ == "__main__":
-    app.launch(server_name="0.0.0.0", server_port=7865)
+    app.launch(share=True)

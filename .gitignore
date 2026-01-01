@@ -60,4 +60,4 @@ Thumbs.db
 htmlcov/
 
 # Build artifacts
-*.zip
+# *.zip (temporarily allowing for download)

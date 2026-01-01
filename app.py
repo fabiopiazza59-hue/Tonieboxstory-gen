@@ -9,7 +9,7 @@ import os
 import time
 
 from src.story_generator import StoryGenerator
-from src.tts_engine import TTSEngine, VOICES
+from src.tts_engine import TTSEngine, VOICES, LANGUAGES, get_voices_for_language, get_default_voice_for_language
 from src.rate_limiter import MAX_STORIES_PER_DAY
 from src.prompts import AGE_GROUPS, THEMES
 
@@ -55,6 +55,7 @@ Sweet dreams, {child_name}."""
 def generate_story_and_audio(
     child_name: str,
     age_group: str,
+    language: str,
     theme: str,
     custom_theme: str,
     voice: str
@@ -65,7 +66,7 @@ def generate_story_and_audio(
     if not child_name or not child_name.strip():
         return "", None, "Please enter your child's name."
 
-    # Clean name (letters, spaces, hyphens only)
+    # Clean name (letters, spaces, hyphens only, plus unicode for international names)
     clean_name = "".join(c for c in child_name if c.isalpha() or c in " -'")
     if not clean_name:
         return "", None, "Please enter a valid name (letters only)."
@@ -86,7 +87,8 @@ def generate_story_and_audio(
             story_text = generator.generate_story(
                 child_name=clean_name,
                 age_group=age_group,
-                theme=final_theme
+                theme=final_theme,
+                language=language
             )
 
         # Step 2: Generate audio
@@ -127,6 +129,14 @@ def generate_story_and_audio(
 def update_custom_theme_visibility(theme: str):
     """Show/hide custom theme input based on theme selection."""
     return gr.update(visible=(theme == "Custom"))
+
+
+def update_voices_for_language(language: str):
+    """Update voice dropdown options based on selected language."""
+    voices = get_voices_for_language(language)
+    choices = [(v["label"], k) for k, v in voices.items()]
+    default_voice = get_default_voice_for_language(language)
+    return gr.update(choices=choices, value=default_voice)
 
 
 # Build the Gradio interface
@@ -177,10 +187,18 @@ with gr.Blocks(
                 max_lines=2,
             )
 
-            voice = gr.Radio(
-                choices=[(v["label"], k) for k, v in VOICES.items()],
+            language = gr.Dropdown(
+                choices=[(v["label"], k) for k, v in LANGUAGES.items()],
+                label="Language",
+                value="en",
+            )
+
+            # Get initial English voices
+            initial_voices = get_voices_for_language("en")
+            voice = gr.Dropdown(
+                choices=[(v["label"], k) for k, v in initial_voices.items()],
                 label="Voice",
-                value="warm_female_us",
+                value="en_warm_female_us",
             )
 
             generate_btn = gr.Button(
@@ -229,12 +247,18 @@ with gr.Blocks(
         outputs=[custom_theme],
     )
 
+    language.change(
+        fn=update_voices_for_language,
+        inputs=[language],
+        outputs=[voice],
+    )
+
     generate_btn.click(
         fn=generate_story_and_audio,
-        inputs=[child_name, age_group, theme, custom_theme, voice],
+        inputs=[child_name, age_group, language, theme, custom_theme, voice],
         outputs=[story_output, audio_output, status_output],
     )
 
 
 if __name__ == "__main__":
-    app.launch()
+    app.launch(server_name="0.0.0.0", server_port=7865)

@@ -4,9 +4,8 @@ Personalized Story Generator - Main Application
 A free SaaS for generating personalized audio stories for Toniebox Creative-Tonies.
 """
 
-import os
 import gradio as gr
-from typing import Tuple, Optional
+from typing import Tuple, Optional, Any
 
 from src.story_generator import StoryGenerator
 from src.tts_engine import TTSEngine, VOICES
@@ -43,26 +42,26 @@ def generate_story_and_audio(
     voice: str,
     stories_count: int,
     progress=gr.Progress()
-) -> Tuple[str, Optional[str], str, str, int, bool, bool]:
+):
     """Generate a personalized story and convert to audio."""
 
     # Validate inputs
     if not child_name or not child_name.strip():
-        return "", None, "⚠️ Please enter your child's name.", "", stories_count, False, False
+        return "", None, "⚠️ Please enter your child's name.", "", stories_count, gr.update(visible=False), gr.update(visible=False)
 
     # Clean name (letters, spaces, hyphens only)
     clean_name = "".join(c for c in child_name if c.isalpha() or c in " -'")
     if not clean_name:
-        return "", None, "⚠️ Please enter a valid name (letters only).", "", stories_count, False, False
+        return "", None, "⚠️ Please enter a valid name (letters only).", "", stories_count, gr.update(visible=False), gr.update(visible=False)
 
     # Check rate limit
     if stories_count >= MAX_STORIES_PER_DAY:
-        return "", None, f"⚠️ You've created {MAX_STORIES_PER_DAY} stories today! Come back tomorrow.", "", stories_count, False, False
+        return "", None, f"⚠️ You've created {MAX_STORIES_PER_DAY} stories today! Come back tomorrow.", "", stories_count, gr.update(visible=False), gr.update(visible=False)
 
     # Determine theme
     final_theme = custom_theme.strip() if theme == "Custom" else theme
     if not final_theme:
-        return "", None, "⚠️ Please select a theme or enter a custom theme.", "", stories_count, False, False
+        return "", None, "⚠️ Please select a theme or enter a custom theme.", "", stories_count, gr.update(visible=False), gr.update(visible=False)
 
     try:
         # Step 1: Generate story
@@ -99,13 +98,13 @@ def generate_story_and_audio(
             f"📊 {remaining} stories remaining today"
         )
 
-        return story_text, audio_path, status_msg, "", new_count, True, True
+        return story_text, audio_path, status_msg, "", new_count, gr.update(visible=True), gr.update(visible=True)
 
     except Exception as e:
         error_msg = str(e)
         if "API key" in error_msg or "GROQ_API_KEY" in error_msg:
             error_msg = "Service temporarily unavailable. Please try again later."
-        return "", None, f"❌ Oops! {error_msg}", "", stories_count, False, False
+        return "", None, f"❌ Oops! {error_msg}", "", stories_count, gr.update(visible=False), gr.update(visible=False)
 
 
 def handle_feedback(feedback_type: str) -> str:

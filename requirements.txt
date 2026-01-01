@@ -1,5 +1,6 @@
 # Core dependencies - pinned for HuggingFace Spaces compatibility
 gradio==4.31.0
+huggingface_hub==0.23.0
 groq>=0.4.0
 
 # Text-to-Speech (Microsoft Edge TTS - free, no API key)

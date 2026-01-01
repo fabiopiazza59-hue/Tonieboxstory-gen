@@ -5,11 +5,10 @@ A free SaaS for generating personalized audio stories for Toniebox Creative-Toni
 """
 
 import gradio as gr
-from typing import Tuple, Optional, Any
 
 from src.story_generator import StoryGenerator
 from src.tts_engine import TTSEngine, VOICES
-from src.rate_limiter import RateLimiter, MAX_STORIES_PER_DAY
+from src.rate_limiter import MAX_STORIES_PER_DAY
 from src.prompts import AGE_GROUPS, THEMES
 
 
@@ -40,28 +39,23 @@ def generate_story_and_audio(
     theme: str,
     custom_theme: str,
     voice: str,
-    stories_count: int,
     progress=gr.Progress()
 ):
     """Generate a personalized story and convert to audio."""
 
     # Validate inputs
     if not child_name or not child_name.strip():
-        return "", None, "⚠️ Please enter your child's name.", "", stories_count, gr.update(visible=False), gr.update(visible=False)
+        return "", None, "⚠️ Please enter your child's name."
 
     # Clean name (letters, spaces, hyphens only)
     clean_name = "".join(c for c in child_name if c.isalpha() or c in " -'")
     if not clean_name:
-        return "", None, "⚠️ Please enter a valid name (letters only).", "", stories_count, gr.update(visible=False), gr.update(visible=False)
-
-    # Check rate limit
-    if stories_count >= MAX_STORIES_PER_DAY:
-        return "", None, f"⚠️ You've created {MAX_STORIES_PER_DAY} stories today! Come back tomorrow.", "", stories_count, gr.update(visible=False), gr.update(visible=False)
+        return "", None, "⚠️ Please enter a valid name (letters only)."
 
     # Determine theme
     final_theme = custom_theme.strip() if theme == "Custom" else theme
     if not final_theme:
-        return "", None, "⚠️ Please select a theme or enter a custom theme.", "", stories_count, gr.update(visible=False), gr.update(visible=False)
+        return "", None, "⚠️ Please select a theme or enter a custom theme."
 
     try:
         # Step 1: Generate story
@@ -88,31 +82,18 @@ def generate_story_and_audio(
         duration_min = generator.estimate_duration(story_text)
         duration_str = f"{int(duration_min)} min {int((duration_min % 1) * 60)} sec"
 
-        # Update count
-        new_count = stories_count + 1
-        remaining = MAX_STORIES_PER_DAY - new_count
-
         status_msg = (
             f"✅ **Story created for {clean_name}!**\n\n"
-            f"📖 Duration: ~{duration_str}\n"
-            f"📊 {remaining} stories remaining today"
+            f"📖 Duration: ~{duration_str}"
         )
 
-        return story_text, audio_path, status_msg, "", new_count, gr.update(visible=True), gr.update(visible=True)
+        return story_text, audio_path, status_msg
 
     except Exception as e:
         error_msg = str(e)
         if "API key" in error_msg or "GROQ_API_KEY" in error_msg:
             error_msg = "Service temporarily unavailable. Please try again later."
-        return "", None, f"❌ Oops! {error_msg}", "", stories_count, gr.update(visible=False), gr.update(visible=False)
-
-
-def handle_feedback(feedback_type: str) -> str:
-    """Handle thumbs up/down feedback."""
-    if feedback_type == "up":
-        return "💜 Thank you! We're glad you enjoyed the story."
-    else:
-        return "💜 Thank you for your feedback!"
+        return "", None, f"❌ Oops! {error_msg}"
 
 
 def update_custom_theme_visibility(theme: str):
@@ -128,9 +109,6 @@ with gr.Blocks(
         secondary_hue="pink",
     ),
 ) as app:
-
-    # Hidden counter for rate limiting
-    stories_count = gr.State(value=0)
 
     # Header
     gr.Markdown(
@@ -185,8 +163,6 @@ with gr.Blocks(
                 size="lg",
             )
 
-            gr.Markdown(f"*You can create up to {MAX_STORIES_PER_DAY} stories per day*")
-
         with gr.Column(scale=1):
             gr.Markdown("### 📚 Your Story")
 
@@ -205,11 +181,6 @@ with gr.Blocks(
                 label="🔊 Listen to Your Story",
                 type="filepath",
             )
-
-            with gr.Row():
-                feedback_msg = gr.Markdown("")
-                thumbs_up = gr.Button("👍", visible=False, min_width=60)
-                thumbs_down = gr.Button("👎", visible=False, min_width=60)
 
     gr.Markdown(
         """
@@ -236,18 +207,8 @@ with gr.Blocks(
 
     generate_btn.click(
         fn=generate_story_and_audio,
-        inputs=[child_name, age_group, theme, custom_theme, voice, stories_count],
-        outputs=[story_output, audio_output, status_output, feedback_msg, stories_count, thumbs_up, thumbs_down],
-    )
-
-    thumbs_up.click(
-        fn=lambda: handle_feedback("up"),
-        outputs=[feedback_msg],
-    )
-
-    thumbs_down.click(
-        fn=lambda: handle_feedback("down"),
-        outputs=[feedback_msg],
+        inputs=[child_name, age_group, theme, custom_theme, voice],
+        outputs=[story_output, audio_output, status_output],
     )
 
 
